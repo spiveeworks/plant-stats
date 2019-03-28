@@ -35,8 +35,18 @@ impl piston_app::App for Game {
     }
     fn on_input(
         self: &mut Self,
-        _args: ButtonArgs,
+        args: ButtonArgs,
     ) {
+        match args.button {
+            Button::Keyboard(key) => match key {
+                Key::W => self.player_pos[1] -= 1.0,
+                Key::A => self.player_pos[0] -= 1.0,
+                Key::S => self.player_pos[1] += 1.0,
+                Key::D => self.player_pos[0] += 1.0,
+                _ => (),
+            }
+            _ => (),
+        }
     }
     fn on_mouse_move(
         self: &mut Self,
