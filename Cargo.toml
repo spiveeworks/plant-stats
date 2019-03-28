@@ -5,3 +5,5 @@ authors = ["SpiveeWorks <spiveehere@gmail.com>"]
 edition = "2018"
 
 [dependencies]
+piston_app = { git = "https://github.com/spiveeworks/piston_app" }
+piston_window = "0.89"
