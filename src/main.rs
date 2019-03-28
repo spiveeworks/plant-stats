@@ -1,9 +1,16 @@
 use piston_window::*;
 
+mod dir;
+
+use self::dir::*;
+
 struct Game {
     player_pos: [f64; 2],
     // is there a piston feature for this?
     view_pos: [f64; 2],
+
+    move_bindings: Dir2<Key>,
+    movement: Dir2<bool>,
 }
 
 
@@ -30,21 +37,26 @@ impl piston_app::Draw for Game {
 impl piston_app::App for Game {
     fn on_update(
         self: &mut Self,
-        _args: UpdateArgs,
+        args: UpdateArgs,
     ) {
+        let dt = args.dt;
+        let dir = self.movement.dir_vec();
+        let speed = 100.0;
+
+        for i in 0..=1 {
+            self.player_pos[i] += dt * dir[i] * speed;
+        }
     }
+
     fn on_input(
         self: &mut Self,
         args: ButtonArgs,
     ) {
         match args.button {
-            Button::Keyboard(key) => match key {
-                Key::W => self.player_pos[1] -= 1.0,
-                Key::A => self.player_pos[0] -= 1.0,
-                Key::S => self.player_pos[1] += 1.0,
-                Key::D => self.player_pos[0] += 1.0,
-                _ => (),
-            }
+            Button::Keyboard(key) => {
+                let pressed = args.state == ButtonState::Press;
+                self.movement.write_if_eq(&self.move_bindings, &key, &pressed);
+            },
             _ => (),
         }
     }
@@ -68,6 +80,18 @@ fn main() {
     let game = Game {
         player_pos: [0.0, 0.0],
         view_pos: [0.0, 0.0],
+
+        move_bindings: Dir2 {
+            x: Dir1 {
+                pos: Key::D,
+                neg: Key::A,
+            },
+            y: Dir1 {
+                pos: Key::S,
+                neg: Key::W,
+            },
+        },
+        movement: Default::default(),
     };
     piston_app::run_until_escape(game);
 }
