@@ -1,6 +1,7 @@
 use piston_window::*;
 
 mod dir;
+mod water;
 
 use self::dir::*;
 
@@ -11,6 +12,8 @@ struct Game {
 
     move_bindings: Dir2<Key>,
     movement: Dir2<bool>,
+
+    water: water::WaterMap,
 }
 
 
@@ -26,11 +29,31 @@ impl piston_app::Draw for Game {
         // think of this as finding the in-game location of the screen centre
         centre = centre.trans(-self.view_pos[0], -self.view_pos[1]);
 
-        let player = centre.trans(self.player_pos[0], self.player_pos[1]);
+        {
+            let tile_size = 20.0;
+            let corner = centre.trans(-16.0 * tile_size, -16.0 * tile_size);
+            let rect = [0.0, 0.0, tile_size, tile_size];
+            for i in 0..32 {
+                for j in 0..32 {
+                    let val = self.water[i][j] as f32 / 200.0;
+                    let color = [val, val, val, 1.0];
 
-        let color = [1.0, 0.0, 0.0, 1.0];
-        let rect = [-10.0, -10.0, 20.0, 20.0];
-        ellipse(color, rect, player, graphics);
+                    let tile = corner.trans(
+                        tile_size * i as f64,
+                        tile_size * j as f64
+                    );
+                    rectangle(color, rect, tile, graphics);
+                }
+            }
+        }
+
+        {
+            let player = centre.trans(self.player_pos[0], self.player_pos[1]);
+
+            let color = [1.0, 0.0, 0.0, 1.0];
+            let rect = [-10.0, -10.0, 20.0, 20.0];
+            ellipse(color, rect, player, graphics);
+        }
     }
 }
 
@@ -56,6 +79,10 @@ impl piston_app::App for Game {
             Button::Keyboard(key) => {
                 let pressed = args.state == ButtonState::Press;
                 self.movement.write_if_eq(&self.move_bindings, &key, &pressed);
+                if key == Key::P {
+                    water::diffuse_water(&mut self.water);
+                    self.water[16][16] = 200.0;
+                }
             },
             _ => (),
         }
@@ -77,6 +104,8 @@ impl piston_app::App for Game {
 
 
 fn main() {
+    let mut water = [[10.0; 32]; 32];
+    water[16][16] = 200.0;
     let game = Game {
         player_pos: [0.0, 0.0],
         view_pos: [0.0, 0.0],
@@ -92,6 +121,7 @@ fn main() {
             },
         },
         movement: Default::default(),
+        water,
     };
     piston_app::run_until_escape(game);
 }
