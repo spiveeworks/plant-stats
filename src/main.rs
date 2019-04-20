@@ -35,6 +35,10 @@ impl piston_app::Draw for Game {
             let tile_size = 20.0;
             let corner = centre.trans(-16.0 * tile_size, -16.0 * tile_size);
             let rect = [0.0, 0.0, tile_size, tile_size];
+            // @DebugPerformance
+            // this loop seems very very slow in debug,
+            // removing matrix transformations doesn't help
+            // piston is just not made for debug mode
             for i in 0..32 {
                 for j in 0..32 {
                     {
