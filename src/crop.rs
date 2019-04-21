@@ -144,24 +144,36 @@ pub fn update_crops(crops: &mut CropMap, water: &mut water::WaterMap) {
             if crops[i][j].is_none() {
                 continue;
             }
+            let mut crop_gone = false;
             let crop = crops[i][j].as_mut().unwrap();
-
-            if crop.health < 0.0 {
-                continue;
-            }
-            let thirst = crop.genome_derived.thirst;
-            let available = *moisture / 10.0;
-            crop.health += available;
-            crop.health -= thirst;
-            if available < thirst {
-                crop.growth += available / thirst;
-                // crop.wilt = true;
+            if crop.stage == Stage::Dead {
+                crop.growth -= 1.0;
+                if crop.growth < 0.0 {
+                    crop_gone = true;
+                }
             } else {
-                crop.growth += 1.0;
-                // crop.wilt = false;
+                let thirst = crop.genome_derived.thirst;
+                let available = *moisture / 10.0;
+                crop.health += available;
+                crop.health -= thirst;
+                if available < thirst {
+                    crop.growth += available / thirst;
+                    // crop.wilt = true;
+                } else {
+                    crop.growth += 1.0;
+                    // crop.wilt = false;
+                }
+                if crop.health < 0.0 {
+                    crop.stage = Stage::Dead;
+                } else if crop.health > crop.genome_derived.max_health {
+                    crop.health = crop.genome_derived.max_health;
+                }
+                *moisture -= available;
             }
 
-            *moisture -= available;
+            if crop_gone {
+                crops[i][j] = None;
+            }
         }
     }
 }
