@@ -63,32 +63,32 @@ impl Crop {
             Root => SeedGrowthData {
                 seedling_time: 0.0,
                 fibre_time: 60.0,
-                fruit_time: 0.0,
-                spread_time: 0.0,
+                fruit_time: 60.0,
+                spread_time: 60.0,
                 max_health: 100.0,
                 thirst: 5.0,
             },
             Bean => SeedGrowthData {
                 seedling_time: 0.0,
                 fibre_time: 20.0,
-                fruit_time: 0.0,
-                spread_time: 0.0,
+                fruit_time: 20.0,
+                spread_time: 20.0,
                 max_health: 100.0,
                 thirst: 5.0,
             },
             Gourd => SeedGrowthData {
                 seedling_time: 0.0,
                 fibre_time: 40.0,
-                fruit_time: 0.0,
-                spread_time: 0.0,
+                fruit_time: 40.0,
+                spread_time: 40.0,
                 max_health: 150.0,
                 thirst: 5.0,
             },
             Grass => SeedGrowthData {
                 seedling_time: 0.0,
                 fibre_time: 15.0,
-                fruit_time: 0.0,
-                spread_time: 0.0,
+                fruit_time: 15.0,
+                spread_time: 15.0,
                 max_health: 50.0,
                 thirst: 5.0,
             },
@@ -98,7 +98,7 @@ impl Crop {
 
 impl SeedData {
     pub fn derive(self: Self) -> SeedGrowthData {
-        let SeedData { species, richness, volume } = self;
+        let SeedData { richness, volume, .. } = self;
         let quality = (richness + volume) / 2.0; // [0, 1]
         let hardiness = 1.0 - quality; // [0, 1]
         let agility = 0.5 * f64::abs(quality - 0.5);
@@ -169,6 +169,40 @@ pub fn update_crops(crops: &mut CropMap, water: &mut water::WaterMap) {
                     crop.health = crop.genome_derived.max_health;
                 }
                 *moisture -= available;
+            }
+            loop {
+                match crop.stage {
+                    Stage::Dead => break,
+
+                    Stage::Seedling => {
+                        if crop.growth > crop.genome_derived.seedling_time {
+                            crop.stage = Stage::FibreGrowth;
+                        } else {
+                            break;
+                        }
+                    },
+                    Stage::FibreGrowth => {
+                        if crop.growth > crop.genome_derived.fibre_time {
+                            crop.stage = Stage::FruitGrowth;
+                        } else {
+                            break;
+                        }
+                    },
+                    Stage::FruitGrowth => {
+                        if crop.growth > crop.genome_derived.fruit_time {
+                            crop.stage = Stage::Spreading;
+                        } else {
+                            break;
+                        }
+                    },
+                    Stage::Spreading => {
+                        if crop.growth > crop.genome_derived.spread_time {
+                            crop.stage = Stage::Dead;
+                        } else {
+                            break;
+                        }
+                    },
+                }
             }
 
             if crop_gone {
