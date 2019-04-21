@@ -149,6 +149,7 @@ impl piston_app::App for Game {
 fn main() {
     let water = [[100.0; 32]; 32];
     let mut crops = [[None; 32]; 32];
+    /*
     for i in 12..22 {
         crops[i][10] = Some(crop::SeedData {
             species: crop::Crop::Root,
@@ -166,6 +167,29 @@ fn main() {
             volume: 0.5,
         }.crop());
         crops[i][22] = Some(crop::SeedData {
+            species: crop::Crop::Grass,
+            richness: 0.5,
+            volume: 0.5,
+        }.crop());
+    }
+    */
+    {
+        crops[10][10] = Some(crop::SeedData {
+            species: crop::Crop::Root,
+            richness: 0.5,
+            volume: 0.5,
+        }.crop());
+        crops[10][22] = Some(crop::SeedData {
+            species: crop::Crop::Bean,
+            richness: 0.5,
+            volume: 0.5,
+        }.crop());
+        crops[22][22] = Some(crop::SeedData {
+            species: crop::Crop::Gourd,
+            richness: 0.5,
+            volume: 0.5,
+        }.crop());
+        crops[22][10] = Some(crop::SeedData {
             species: crop::Crop::Grass,
             richness: 0.5,
             volume: 0.5,
