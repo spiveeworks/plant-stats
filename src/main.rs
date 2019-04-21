@@ -112,7 +112,6 @@ impl piston_app::App for Game {
                 if pressed && key == Key::P {
                     crop::update_crops(&mut self.crops, &mut self.water);
                     water::diffuse_water(&mut self.water);
-                    self.water[16][16] = 200.0;
                 }
             },
             _ => (),
@@ -135,26 +134,25 @@ impl piston_app::App for Game {
 
 
 fn main() {
-    let mut water = [[10.0; 32]; 32];
-    water[16][16] = 200.0;
+    let water = [[200.0; 32]; 32];
     let mut crops = [[None; 32]; 32];
     for i in 12..22 {
-        crops[i][14] = Some(crop::SeedData {
+        crops[i][10] = Some(crop::SeedData {
             species: crop::Crop::Root,
             richness: 0.5,
             volume: 0.5,
         }.crop());
-        crops[i][15] = Some(crop::SeedData {
+        crops[i][14] = Some(crop::SeedData {
             species: crop::Crop::Bean,
             richness: 0.5,
             volume: 0.5,
         }.crop());
-        crops[i][16] = Some(crop::SeedData {
+        crops[i][18] = Some(crop::SeedData {
             species: crop::Crop::Gourd,
             richness: 0.5,
             volume: 0.5,
         }.crop());
-        crops[i][17] = Some(crop::SeedData {
+        crops[i][22] = Some(crop::SeedData {
             species: crop::Crop::Grass,
             richness: 0.5,
             volume: 0.5,

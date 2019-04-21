@@ -2,7 +2,7 @@
 pub type WaterMap = [[f64;32];32];
 
 // proportion of water that diffuses out of a tile per day
-const DIFF_RATE: f64 = 0.4;
+const DIFF_RATE: f64 = 0.7;
 // proportion of water that is destroyed in a tile per day
 const EVAP_COEFF: f64 = 0.0;
 // ratio between adjacent and diagonal water diffusion

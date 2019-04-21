@@ -62,11 +62,11 @@ impl Crop {
         match self {
             Root => SeedGrowthData {
                 seedling_time: 0.0,
-                fibre_time: 60.0,
-                fruit_time: 60.0,
-                spread_time: 60.0,
+                fibre_time: 80.0,
+                fruit_time: 80.0,
+                spread_time: 80.0,
                 max_health: 100.0,
-                thirst: 5.0,
+                thirst: 1.0,
             },
             Bean => SeedGrowthData {
                 seedling_time: 0.0,
@@ -74,7 +74,7 @@ impl Crop {
                 fruit_time: 20.0,
                 spread_time: 20.0,
                 max_health: 100.0,
-                thirst: 5.0,
+                thirst: 4.0,
             },
             Gourd => SeedGrowthData {
                 seedling_time: 0.0,
@@ -82,15 +82,15 @@ impl Crop {
                 fruit_time: 40.0,
                 spread_time: 40.0,
                 max_health: 150.0,
-                thirst: 5.0,
+                thirst: 2.0,
             },
             Grass => SeedGrowthData {
                 seedling_time: 0.0,
                 fibre_time: 15.0,
                 fruit_time: 15.0,
                 spread_time: 15.0,
-                max_health: 50.0,
-                thirst: 5.0,
+                max_health: 20.0,
+                thirst: 4.0,
             },
         }
     }
@@ -147,7 +147,7 @@ pub fn update_crops(crops: &mut CropMap, water: &mut water::WaterMap) {
             let mut crop_gone = false;
             let crop = crops[i][j].as_mut().unwrap();
             if crop.stage == Stage::Dead {
-                crop.growth -= 1.0;
+                crop.growth -= 2.0;
                 if crop.growth < 0.0 {
                     crop_gone = true;
                 }
