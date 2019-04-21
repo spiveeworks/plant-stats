@@ -13,6 +13,7 @@ struct Game {
 
     move_bindings: Dir2<Key>,
     movement: Dir2<bool>,
+    do_day: bool,
 
     water: water::WaterMap,
     crops: crop::CropMap,
@@ -99,6 +100,11 @@ impl piston_app::App for Game {
         for i in 0..=1 {
             self.player_pos[i] += dt * dir[i] * speed;
         }
+        if self.do_day {
+            crop::update_crops(&mut self.crops, &mut self.water);
+            water::diffuse_water(&mut self.water);
+            self.do_day = false;
+        }
     }
 
     fn on_input(
@@ -110,8 +116,7 @@ impl piston_app::App for Game {
                 let pressed = args.state == ButtonState::Press;
                 self.movement.write_if_eq(&self.move_bindings, &key, &pressed);
                 if pressed && key == Key::P {
-                    crop::update_crops(&mut self.crops, &mut self.water);
-                    water::diffuse_water(&mut self.water);
+                    self.do_day = true;
                 }
             },
             _ => (),
@@ -173,6 +178,7 @@ fn main() {
             },
         },
         movement: Default::default(),
+        do_day: false,
         water,
         crops,
     };
