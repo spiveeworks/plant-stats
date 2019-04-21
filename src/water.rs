@@ -49,4 +49,10 @@ pub fn diffuse_water(map: &mut WaterMap) {
     }
 }
 
-
+pub fn rain(map: &mut WaterMap) {
+    for i in 2..30 {
+        for j in 2..30 {
+            map[i][j] = (map[i][j] + 200.0) / 2.0;
+        }
+    }
+}

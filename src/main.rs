@@ -17,6 +17,9 @@ struct Game {
 
     water: water::WaterMap,
     crops: crop::CropMap,
+
+    rain_cycle: u8,
+    last_rain: u8,
 }
 
 
@@ -104,6 +107,11 @@ impl piston_app::App for Game {
             crop::update_crops(&mut self.crops, &mut self.water);
             water::diffuse_water(&mut self.water);
             self.do_day = false;
+            self.last_rain += 1;
+            if self.last_rain >= self.rain_cycle {
+                self.last_rain = 0;
+                water::rain(&mut self.water);
+            }
         }
     }
 
@@ -139,7 +147,7 @@ impl piston_app::App for Game {
 
 
 fn main() {
-    let water = [[200.0; 32]; 32];
+    let water = [[100.0; 32]; 32];
     let mut crops = [[None; 32]; 32];
     for i in 12..22 {
         crops[i][10] = Some(crop::SeedData {
@@ -181,6 +189,9 @@ fn main() {
         do_day: false,
         water,
         crops,
+
+        last_rain: 0,
+        rain_cycle: 30,
     };
     piston_app::run_until_escape(game);
 }
