@@ -170,6 +170,7 @@ pub fn update_crops(crops: &mut CropMap, water: &mut water::WaterMap) {
                 }
                 *moisture -= available;
             }
+            let mut spread = None;
             loop {
                 match crop.stage {
                     Stage::Dead => break,
@@ -198,11 +199,50 @@ pub fn update_crops(crops: &mut CropMap, water: &mut water::WaterMap) {
                     Stage::Spreading => {
                         if crop.growth > crop.genome_derived.spread_time {
                             crop.stage = Stage::Dead;
+                            spread = Some(crop.genome);
                         } else {
                             break;
                         }
                     },
                 }
+            }
+
+            if let Some(genome) = spread {
+                fn maybe_spread_seed(
+                    crops: &mut CropMap,
+                    i: usize,
+                    j: usize,
+                    genome: SeedData,
+                ) {
+                    if i >= 2 && i < 30 &&
+                        j >= 2 && j < 30 &&
+                        crops[i][j].is_none() /*&& rand_bool()*/
+                    {
+                        let mut mutated = genome;
+                        mutated.richness += rand_range(-0.1, 0.1);
+                        if mutated.richness < 0.0 {
+                            mutated.richness = 0.0;
+                        } else if mutated.richness > 1.0 {
+                            mutated.richness = 1.0;
+                        }
+                        mutated.volume += rand_range(-0.1, 0.1);
+                        if mutated.volume < 0.0 {
+                            mutated.volume = 0.0;
+                        } else if mutated.volume > 1.0 {
+                            mutated.volume = 1.0;
+                        }
+
+                        crops[i][j] = Some(mutated.crop());
+                    }
+                }
+                maybe_spread_seed(crops, i-1, j-1, genome);
+                maybe_spread_seed(crops, i, j-1, genome);
+                maybe_spread_seed(crops, i+1, j-1, genome);
+                maybe_spread_seed(crops, i-1, j, genome);
+                maybe_spread_seed(crops, i+1, j, genome);
+                maybe_spread_seed(crops, i-1, j+1, genome);
+                maybe_spread_seed(crops, i, j+1, genome);
+                maybe_spread_seed(crops, i+1, j+1, genome);
             }
 
             if crop_gone {
@@ -212,3 +252,31 @@ pub fn update_crops(crops: &mut CropMap, water: &mut water::WaterMap) {
     }
 }
 
+mod rand {
+    static mut DATA: [u64; 4] = [32767, 32767, 32767, 32767];
+    pub fn rand_int() -> u64 {
+        // safe because single threaded
+        // if not then make this thread local storage
+        unsafe {
+            let old_root = DATA[0];
+            let mut new_root = old_root;
+            for i in 1..4 {
+                new_root ^= DATA[i] << (2*i);
+                new_root ^= DATA[i] >> (i - 1);
+            }
+            DATA = [DATA[1], DATA[2], DATA[3], new_root];
+            old_root
+        }
+    }
+
+    pub fn rand_proportion() -> f64 {
+        let val = rand_int();
+        (val % 65536) as f64 / 65536.0
+    }
+
+    pub fn rand_range(min: f64, max: f64) -> f64 {
+        rand_proportion() * (max - min) + min
+    }
+}
+
+use self::rand::*;
