@@ -56,7 +56,15 @@ impl piston_app::Draw for Game {
                         if size > 1.0 {
                             size = 1.0;
                         }
-                        let color = [0.0, (crop.health / crop.genome_derived.max_health) as f32, 0.0, 1.0];
+                        let mut color = match crop.genome.species {
+                            crop::Crop::Grass => [0.5, 1.0, 0.0, 1.0],
+                            crop::Crop::Bean => [0.0, 0.5, 0.0, 1.0],
+                            crop::Crop::Gourd => [1.0, 0.0, 0.0, 1.0],
+                            crop::Crop::Root => [1.0, 1.0, 1.0, 1.0],
+                        };
+                        for i in 0..3 {
+                            color[i] *= (crop.health / crop.genome_derived.max_health) as f32;
+                        }
                         let tile = corner.trans(
                             tile_size * (i as f64 + 0.5),
                             tile_size * (j as f64 + 0.5),
