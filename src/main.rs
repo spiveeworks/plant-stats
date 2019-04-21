@@ -101,7 +101,7 @@ impl piston_app::App for Game {
             Button::Keyboard(key) => {
                 let pressed = args.state == ButtonState::Press;
                 self.movement.write_if_eq(&self.move_bindings, &key, &pressed);
-                if key == Key::P {
+                if pressed && key == Key::P {
                     crop::update_crops(&mut self.crops, &mut self.water);
                     water::diffuse_water(&mut self.water);
                     self.water[16][16] = 200.0;
