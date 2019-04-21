@@ -18,16 +18,31 @@ pub enum Crop {
 }
 
 #[derive(Clone, Copy, PartialEq)]
-pub struct CropData {
-    // seed data fields
-    // note seed might get more fields in the future so no point combining
-    pub species: Crop,
-    pub richness: f64,
-    pub volume: f64,
+pub enum Stage {
+    Seedling,
+    FibreGrowth,
+    FruitGrowth,
+    Spreading,
+    Dead,
+}
 
+#[derive(Clone, Copy, PartialEq)]
+pub struct CropData {
+    pub genome: SeedData,
+    pub genome_derived: SeedGrowthData,
+
+    pub stage: Stage,
     pub growth: f64,
-    pub matures: f64,
     pub health: f64,
+}
+
+#[derive(Clone, Copy, PartialEq)]
+pub struct SeedGrowthData {
+    pub seedling_time: f64,
+    pub fibre_time: f64,
+    pub fruit_time: f64,
+    pub spread_time: f64,
+
     pub max_health: f64,
     pub thirst: f64,
 }
@@ -41,33 +56,85 @@ pub struct SeedData {
     pub volume: f64,
 }
 
-pub type CropMap = [[Option<CropData>; 32]; 32];
-
-pub fn create_crop(seed: SeedData) -> CropData {
-    let SeedData { species, richness, volume } = seed;
-
-    let quality = (richness + volume) / 2.0; // [0, 1]
-    let hardiness = 1.0 - quality; // [0, 1]
-    let agility = 0.5 * f64::abs(quality - 0.5);
-    let (base_time, base_health, base_thirst) = match species {
-        Crop::Root => (60.0, 100.0, 5.0),
-        Crop::Bean => (20.0, 100.0, 5.0),
-        Crop::Gourd => (40.0, 150.0, 5.0),
-        Crop::Grass => (15.0, 50.0, 5.0),
-    };
-    let health = base_health * hardiness;
-    CropData {
-        species,
-        richness,
-        volume,
-        growth: 0.0,
-        // all crops tend towards 1.5x growing cycle?
-        matures: base_time * (1.5 - agility),
-        health,
-        max_health: health,
-        thirst: base_thirst * quality,
+impl Crop {
+    fn derive(self: Self) -> SeedGrowthData {
+        use self::Crop::*;
+        match self {
+            Root => SeedGrowthData {
+                seedling_time: 0.0,
+                fibre_time: 60.0,
+                fruit_time: 0.0,
+                spread_time: 0.0,
+                max_health: 100.0,
+                thirst: 5.0,
+            },
+            Bean => SeedGrowthData {
+                seedling_time: 0.0,
+                fibre_time: 20.0,
+                fruit_time: 0.0,
+                spread_time: 0.0,
+                max_health: 100.0,
+                thirst: 5.0,
+            },
+            Gourd => SeedGrowthData {
+                seedling_time: 0.0,
+                fibre_time: 40.0,
+                fruit_time: 0.0,
+                spread_time: 0.0,
+                max_health: 150.0,
+                thirst: 5.0,
+            },
+            Grass => SeedGrowthData {
+                seedling_time: 0.0,
+                fibre_time: 15.0,
+                fruit_time: 0.0,
+                spread_time: 0.0,
+                max_health: 50.0,
+                thirst: 5.0,
+            },
+        }
     }
 }
+
+impl SeedData {
+    pub fn derive(self: Self) -> SeedGrowthData {
+        let SeedData { species, richness, volume } = self;
+        let quality = (richness + volume) / 2.0; // [0, 1]
+        let hardiness = 1.0 - quality; // [0, 1]
+        let agility = 0.5 * f64::abs(quality - 0.5);
+
+        let mut base = self.species.derive();
+        base.max_health *= hardiness;
+        // all crops tend towards 1.5x growing cycle?
+        base.seedling_time *= 1.5 - agility;
+        base.fibre_time *= 1.5 - agility;
+        base.fruit_time *= 1.5 - agility;
+        base.spread_time *= 1.5 - agility;
+        base.thirst *= quality;
+
+        base
+    }
+
+    pub fn crop(self: Self) -> CropData {
+        let genome = self;
+        let genome_derived = self.derive();
+        CropData {
+            genome,
+            genome_derived,
+            stage: Stage::Seedling,
+            growth: 0.0,
+            health: genome_derived.max_health,
+        }
+    }
+}
+
+pub type CropMap = [[Option<CropData>; 32]; 32];
+
+/*
+pub fn create_crop(seed: SeedData) -> CropData {
+    CropData 
+}
+*/
 
 pub fn update_crops(crops: &mut CropMap, water: &mut water::WaterMap) {
     for i in 0..32 {
@@ -82,11 +149,12 @@ pub fn update_crops(crops: &mut CropMap, water: &mut water::WaterMap) {
             if crop.health < 0.0 {
                 continue;
             }
+            let thirst = crop.genome_derived.thirst;
             let available = *moisture / 10.0;
             crop.health += available;
-            crop.health -= crop.thirst;
-            if available < crop.thirst {
-                crop.growth += available / crop.thirst;
+            crop.health -= thirst;
+            if available < thirst {
+                crop.growth += available / thirst;
                 // crop.wilt = true;
             } else {
                 crop.growth += 1.0;

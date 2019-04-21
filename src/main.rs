@@ -52,11 +52,11 @@ impl piston_app::Draw for Game {
                         rectangle(color, rect, tile, graphics);
                     }
                     if let Some(crop) = self.crops[i][j] {
-                        let mut size = crop.growth / crop.matures;
+                        let mut size = crop.growth / crop.genome_derived.fibre_time;
                         if size > 1.0 {
                             size = 1.0;
                         }
-                        let color = [0.0, (crop.health / crop.max_health) as f32, 0.0, 1.0];
+                        let color = [0.0, (crop.health / crop.genome_derived.max_health) as f32, 0.0, 1.0];
                         let tile = corner.trans(
                             tile_size * (i as f64 + 0.5),
                             tile_size * (j as f64 + 0.5),
@@ -131,26 +131,26 @@ fn main() {
     water[16][16] = 200.0;
     let mut crops = [[None; 32]; 32];
     for i in 12..22 {
-        crops[i][14] = Some(crop::create_crop(crop::SeedData {
+        crops[i][14] = Some(crop::SeedData {
             species: crop::Crop::Root,
             richness: 0.5,
             volume: 0.5,
-        }));
-        crops[i][15] = Some(crop::create_crop(crop::SeedData {
+        }.crop());
+        crops[i][15] = Some(crop::SeedData {
             species: crop::Crop::Bean,
             richness: 0.5,
             volume: 0.5,
-        }));
-        crops[i][16] = Some(crop::create_crop(crop::SeedData {
+        }.crop());
+        crops[i][16] = Some(crop::SeedData {
             species: crop::Crop::Gourd,
             richness: 0.5,
             volume: 0.5,
-        }));
-        crops[i][17] = Some(crop::create_crop(crop::SeedData {
+        }.crop());
+        crops[i][17] = Some(crop::SeedData {
             species: crop::Crop::Grass,
             richness: 0.5,
             volume: 0.5,
-        }));
+        }.crop());
     }
     let game = Game {
         player_pos: [0.0, 0.0],
