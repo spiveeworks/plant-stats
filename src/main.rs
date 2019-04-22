@@ -137,7 +137,7 @@ impl piston_app::App for Game {
     }
 
     fn window_name() -> &'static str {
-        "Homestead Game"
+        "Plant Mutation Sim"
     }
     fn window_starting_size() -> [u32; 2] {
         [600, 600]
